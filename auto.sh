@@ -10,11 +10,12 @@ echo "1) Node.js"
 echo "2) Python"
 read choice
 
+# Lokasi direktori systemd
+systemd_dir="/etc/systemd/system/"
+
 if [ "$choice" -eq 1 ]; then
   echo "Masukkan entry file js (dengan ekstensi):"
   read entry
-  # Lokasi direktori systemd
-  systemd_dir="/etc/systemd/system/"
 
   # Mendapatkan lokasi Node.js dari command whereis
   node_path=$(whereis node | awk '{print $2}')
@@ -34,7 +35,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/root/$dir/
-Environment=PATH=$node_path:/root/$dir/node_modules/.bin
+Environment=PATH=/bin:/root/.nvm/versions/node/v20.16.0/bin:/root/$dir/node_modules/.bin
 ExecStart=/bin/bash -c \"cat /root/$dir/answers.txt | $node_path /root/$dir/$entry\"
 Restart=always
 
@@ -45,11 +46,9 @@ EOL"
 elif [ "$choice" -eq 2 ]; then
   echo "Masukkan entry file Python (dengan ekstensi):"
   read entry
-  # Lokasi direktori systemd
-  systemd_dir="/etc/systemd/system/"
 
   # Mendapatkan lokasi Python dari command whereis
-  python_path=$(whereis python | awk '{print $2}')
+  python_path=$(whereis python3 | awk '{print $2}')
 
   # Memastikan lokasi Python ditemukan
   if [ -z "$python_path" ]; then
@@ -66,9 +65,9 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/root/$dir
-ExecStart=/root/$dir/venv/bin/python3.10 /root/$dir/$entry
+ExecStart=/root/$dir/venv/bin/python3 /root/$dir/$entry
 Restart=always
-Environment="PATH=/root/$dir/venv/bin"
+Environment=\"PATH=/root/$dir/venv/bin\"
 
 [Install]
 WantedBy=multi-user.target
