@@ -4,22 +4,29 @@
 echo "Masukkan Nama Service (tanpa ekstensi .service):"
 read dir
 
-echo "Masukkan entry file js (dengan extensi):"
-read entry
-# Lokasi direktori systemd
-systemd_dir="/etc/systemd/system/"
+# Pilihan antara Node.js atau Python
+echo "Pilih jenis proyek:"
+echo "1) Node.js"
+echo "2) Python"
+read choice
 
-# Mendapatkan lokasi Node.js dari command whereis
-node_path=$(whereis node | awk '{print $2}')
+if [ "$choice" -eq 1 ]; then
+  echo "Masukkan entry file js (dengan ekstensi):"
+  read entry
+  # Lokasi direktori systemd
+  systemd_dir="/etc/systemd/system/"
 
-# Memastikan lokasi Node.js ditemukan
-if [ -z "$node_path" ]; then
-  echo "Node.js tidak ditemukan. Pastikan Node.js terinstal."
-  exit 1
-fi
+  # Mendapatkan lokasi Node.js dari command whereis
+  node_path=$(whereis node | awk '{print $2}')
 
-# Membuat file service dengan template dan lokasi Node.js
-sudo bash -c "cat > $systemd_dir$dir.service << EOL
+  # Memastikan lokasi Node.js ditemukan
+  if [ -z "$node_path" ]; then
+    echo "Node.js tidak ditemukan. Pastikan Node.js terinstal."
+    exit 1
+  fi
+
+  # Membuat file service dengan template untuk Node.js
+  sudo bash -c "cat > $systemd_dir$dir.service << EOL
 [Unit]
 Description=$dir
 After=network.target
@@ -34,6 +41,43 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOL"
+
+elif [ "$choice" -eq 2 ]; then
+  echo "Masukkan entry file Python (dengan ekstensi):"
+  read entry
+  # Lokasi direktori systemd
+  systemd_dir="/etc/systemd/system/"
+
+  # Mendapatkan lokasi Python dari command whereis
+  python_path=$(whereis python | awk '{print $2}')
+
+  # Memastikan lokasi Python ditemukan
+  if [ -z "$python_path" ]; then
+    echo "Python tidak ditemukan. Pastikan Python terinstal."
+    exit 1
+  fi
+
+  # Membuat file service dengan template untuk Python
+  sudo bash -c "cat > $systemd_dir$dir.service << EOL
+[Unit]
+Description=$dir Service
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/$dir
+ExecStart=/root/$dir/venv/bin/python3.10 /root/$dir/$entry
+Restart=always
+Environment="PATH=/root/$dir/venv/bin"
+
+[Install]
+WantedBy=multi-user.target
+EOL"
+
+else
+  echo "Pilihan tidak valid. Silakan pilih 1 untuk Node.js atau 2 untuk Python."
+  exit 1
+fi
 
 # Menampilkan pesan konfirmasi
 echo "File $dir.service telah dibuat di /etc/systemd/system/."
