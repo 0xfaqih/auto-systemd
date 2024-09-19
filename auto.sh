@@ -58,19 +58,19 @@ elif [ "$choice" -eq 2 ]; then
 
   # Membuat file service dengan template untuk Python
   sudo bash -c "cat > $systemd_dir$dir.service << EOL
+[Install]
+WantedBy=multi-user.target
+
 [Unit]
 Description=$dir Service
 After=network.target
 
 [Service]
 User=root
-WorkingDirectory=/root/$dir
-ExecStart=/root/$dir/venv/bin/python3 /root/$dir/$entry
+WorkingDirectory=/root/$dir/
+Environment=PATH=/root/$dir/venv/bin/
+ExecStart=/bin/bash -c "/root/$dir/venv/bin/python3.10 /root/$dir/$entry < /root/$dir/answers.txt"
 Restart=always
-Environment=\"PATH=/root/$dir/venv/bin\"
-
-[Install]
-WantedBy=multi-user.target
 EOL"
 
 else
